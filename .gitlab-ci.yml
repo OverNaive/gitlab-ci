@@ -1,0 +1,19 @@
+image: ubuntu
+
+stages:
+  - deploy
+
+before_script:
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+master-deploy:
+  stage: deploy
+  script:
+    - ssh root@$SERVER_IP "cd $DEPLOY_DIRECTORY && git checkout master && git pull origin master"
+  only:
+    - master
